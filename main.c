@@ -3,6 +3,7 @@
 #include "main.h"
 #include "ls.h"
 #include "cd.h"
+#include "date.h"
 
 /* Global variables */
 char prompt[]        = "\033[01;32m%s@%s\033[00m:\033[01;34m%s\033[00m %s ";
@@ -13,6 +14,10 @@ char curDir[PWDLENG] = "/home/zsh";    // current directory
 int  verbose         = 0;              // if true, print additional output
 int  argcs[MAXCMDS];
 char previous[MAXLINE];
+
+time_t tval;
+int    slidetime;
+int    jflag;
 /* End global variables */
 
 /*
@@ -49,8 +54,9 @@ int main(int argc, char** argv) {
             fflush(stdout);
             exit(EXIT_SUCCESS);
         }
+        cmdline[strlen(cmdline) - 1] = '\0';  // delete the end: '\n' char
         if (verbose) {
-            printf("[log] user input: %s", cmdline);
+            printf("\033[01;37;40m[log] user input: %s\033[00m\n", cmdline);
         }
 
         /* Evaluate the command line */
@@ -76,7 +82,22 @@ void usage(void) {
 */
 void print_prompt(void) {
     pwd();
-    printf(prompt, user, host, curDir, "$");
+
+    /* Get username and hostname */
+    struct passwd* username;
+    username = getpwuid(getuid());
+    strcpy(user, username->pw_name);
+
+    gethostname(host, sizeof(host));
+
+    char* c;
+    if (!strcmp(username->pw_name, "root")) {
+        c = "\033[01;31m#\033[00m";
+    } else {
+        c = "$";
+    }
+
+    printf(prompt, user, host, curDir, c);
 }
 
 /*
@@ -107,13 +128,12 @@ void pwd(void) {
 */
 void eval(char* cmdline) {
     if (verbose)
-        printf("[eval] command line: %s", cmdline);
+        printf("\033[01;37;40m[eval] command line: %s\033[00m\n", cmdline);
 
     int num_cmds = 0;
     // char** cmds[MAXCMDS];
     char* cmds[MAXCMDS][MAXARGS];
     init_argcs();
-    cmdline[strlen(cmdline) - 1] = '\0';  // delete the end: '\n' char
     num_cmds = parseline(cmdline, cmds);
 
     #ifdef DEBUG
@@ -148,7 +168,7 @@ int parseline(char* cmdline, char* cmds[MAXCMDS][MAXARGS]) {
     while (cmd != NULL) {
         cmds0[numcmds] = cmd;
         if (verbose) {
-            printf("[parseline] cmd = [%s]\n", cmd);
+            printf("\033[01;37;40m[parseline] cmd = [%s]\033[00m\n", cmd);
         }
 
         numcmds++;
@@ -190,6 +210,8 @@ int eval_builtin(int argc, char* argv[MAXARGS]) {
         ls_builtin(argc, argv);
     } else if (!strcmp(argv[0], "cd")) {
         cd_builtin(argc, argv);
+    } else if (!strcmp(argv[0], "date")) {
+        date_builtin(argc, argv);
     } else {
         return 0;  // argv is not a built-in command
     }

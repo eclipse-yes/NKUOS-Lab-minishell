@@ -3,4 +3,4 @@ project(NKUOS_Lab9demo C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(NKUOS_Lab9demo main.c main.h ls.c ls.h cd.c cd.h)
+add_executable(NKUOS_Lab9demo main.c main.h ls.c ls.h cd.c cd.h date.c date.h)

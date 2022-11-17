@@ -24,6 +24,10 @@
 #include <locale.h>
 #include <langinfo.h>
 #include <stdint.h>
+#include <err.h>
+#include <syslog.h>
+#include <sys/time.h>
+#include <time.h>
 
 #define NDEBUG
 #define CD_NDEBUG
